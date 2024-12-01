@@ -8,6 +8,11 @@ from PIL import Image, ImageTk
 from threading import Thread
 import os
 from tkinter import filedialog
+# DB
+from mock_database import init_db, insert_transaction
+from tkinter import ttk
+# Initialize the database at the start of the application
+init_db()
 
 
 PDF_FILENAME = "./pdf/receipt.pdf"  # Name of the PDF file to be printed
@@ -46,6 +51,9 @@ def display_results(scanned_products, total_price):
         shop_address = "123 Market Street, City, Country"
         generate_pdf_receipt(scanned_products, total_price, shop_name, shop_address)
 
+        # Insert transactions into the mock database
+        insert_transaction(scanned_products, total_price)
+
         results_text = "\n".join([f"{p['name']}: ₹{p['final_price']:.2f}" for p in scanned_products])
         results_label.config(text=f"Scanned Products:\n{results_text}\n\nTotal Price: ₹{total_price:.2f}")
 
@@ -78,16 +86,37 @@ def save_pdf():
     else:
         messagebox.showwarning("File Not Found", f"{PDF_FILENAME} not found. Please generate the PDF first.")
 
+def show_transactions():
+    from mock_database import fetch_transactions
+    for row in transaction_table.get_children():
+        transaction_table.delete(row)
+
+    # Fetch transactions from the database
+    transactions = fetch_transactions()
+    for transaction in transactions:
+        transaction_table.insert("", tk.END, values=transaction)
+
+# show_transactions
+def toggle_transaction_table():
+    if not transaction_table.winfo_ismapped():  # Check if the table is not currently displayed
+        transaction_table.pack(pady=20, fill="both", expand=True)
+        show_transactions()  # Populate the table with data
+        btn_debug.config(text="Hide Transactions")
+    else:
+        transaction_table.pack_forget()  # Hide the table
+        btn_debug.config(text="Show Transactions")
+
 # GUI Application
 app = tk.Tk()
 app.title("Barcode Scanner GUI")
 app.geometry("800x670")
 
+# Buttons
 btn_video = tk.Button(app, text="Process Video", command=process_video, width=20)
-btn_video.pack(pady=20)
+btn_video.pack(pady=10)
 
 btn_images = tk.Button(app, text="Process Images", command=process_images, width=20)
-btn_images.pack(pady=20)
+btn_images.pack(pady=10)
 
 
 results_label = tk.Label(app, text="", justify="left", wraplength=500)
@@ -98,6 +127,23 @@ qr_label.pack(pady=10)
 
 # Disable the "Save PDF" button initially
 btn_save_pdf = tk.Button(app, text="Print Receipt", command=save_pdf, width=20, state=tk.DISABLED)
-btn_save_pdf.pack(pady=20)
+btn_save_pdf.pack(pady=10)
+
+btn_debug = tk.Button(app, text="Show Transactions", command=toggle_transaction_table, width=20)
+btn_debug.pack(pady=10)
+
+# Add a Table to Display Transactions
+transaction_table = ttk.Treeview(app, columns=("ID", "Product Name", "Final Price", "Total Price", "Timestamp"), show="headings")
+transaction_table.heading("ID", text="ID")
+transaction_table.heading("Product Name", text="Product Name")
+transaction_table.heading("Final Price", text="Final Price (₹)")
+transaction_table.heading("Total Price", text="Total Price (₹)")
+transaction_table.heading("Timestamp", text="Timestamp")
+transaction_table.column("ID", width=50)
+transaction_table.column("Product Name", width=200)
+transaction_table.column("Final Price", width=100)
+transaction_table.column("Total Price", width=100)
+transaction_table.column("Timestamp", width=200)
+
 
 app.mainloop()
