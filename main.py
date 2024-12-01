@@ -1,22 +1,31 @@
+# tkinter is a standard Python interface to the Tk GUI toolkit
 import tkinter as tk
 from tkinter import filedialog, messagebox
+# Import the scan_video function from video_processor.py
 from video_processor import scan_video
+# Import the scan_barcodes function from image_processor.py
 from image_processor import scan_barcodes
+# Import the generate_combined_payment_qr function from qr_code_generator.py
 from qr_code_generator import generate_combined_payment_qr
+# Import the generate_pdf_receipt function from pdf_generator.py
 from pdf_generator import generate_pdf_receipt
+# Import the Image and ImageTk classes from the PIL module
 from PIL import Image, ImageTk
+# Import the Thread class from the threading module
 from threading import Thread
+# Import the os module to check if a file exists
 import os
 from tkinter import filedialog
-# DB
+# Database imports for mock_database.py
 from mock_database import init_db, insert_transaction
 from tkinter import ttk
 # Initialize the database at the start of the application
 init_db()
 
 
-PDF_FILENAME = "./pdf/receipt.pdf"  # Name of the PDF file to be printed
-
+PDF_FILENAME = "./pdf/receipt.pdf"  
+# Name of the PDF file to be printed
+# Function to process the video file
 def process_video():
     video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video Files", "*.mp4 *.avi *.mov")])
     if not video_path:
@@ -29,34 +38,34 @@ def process_video():
             display_results(scanned_products, total_price)
         except Exception as e:
             messagebox.showerror("Error", str(e))
-
+    # Create a new thread to process the video
     thread = Thread(target=process)
     thread.start()
-
+# Function to process the images
 def process_images():
     file_paths = filedialog.askopenfilenames(title="Select Barcode Images", filetypes=[("Image Files", "*.png *.jpg *.jpeg")])
     if not file_paths:
         messagebox.showinfo("No Files Selected", "Please select at least one image.")
         return
-
+    # Call the scan_barcodes function to process the images
     scanned_products, total_price = scan_barcodes(file_paths)
     display_results(scanned_products, total_price)
-
+# Function to display the results
 def display_results(scanned_products, total_price):
     if scanned_products:
         qr_image = generate_combined_payment_qr(total_price)
         qr_image.save("./payment_qr/payment_qr.png")
-
+        # Generate a PDF receipt with the scanned products and total price
         shop_name = "SuperMart"
         shop_address = "123 Market Street, City, Country"
         generate_pdf_receipt(scanned_products, total_price, shop_name, shop_address)
 
         # Insert transactions into the mock database
         insert_transaction(scanned_products, total_price)
-
+        # Display the scanned products and total price in the GUI
         results_text = "\n".join([f"{p['name']}: ₹{p['final_price']:.2f}" for p in scanned_products])
         results_label.config(text=f"Scanned Products:\n{results_text}\n\nTotal Price: ₹{total_price:.2f}")
-
+        # Display the QR code in the GUI
         qr_img = ImageTk.PhotoImage(qr_image)
         qr_label.config(image=qr_img)
         qr_label.image = qr_img
@@ -66,7 +75,7 @@ def display_results(scanned_products, total_price):
         btn_save_pdf.config(state=tk.NORMAL)
     else:
         messagebox.showwarning("No Barcodes Found", "No valid barcodes were found.")
-
+# Function to save the generated PDF receipt
 def save_pdf():
     if os.path.exists(PDF_FILENAME):
         # Ask the user where to save the file
@@ -85,7 +94,7 @@ def save_pdf():
                 messagebox.showerror("Error", f"Failed to save the PDF: {e}")
     else:
         messagebox.showwarning("File Not Found", f"{PDF_FILENAME} not found. Please generate the PDF first.")
-
+# Function to show transactions in the table
 def show_transactions():
     from mock_database import fetch_transactions
     for row in transaction_table.get_children():
@@ -111,24 +120,24 @@ app = tk.Tk()
 app.title("Barcode Scanner GUI")
 app.geometry("800x670")
 
-# Buttons
+# Buttons for processing video
 btn_video = tk.Button(app, text="Process Video", command=process_video, width=20)
 btn_video.pack(pady=10)
-
+# Buttons for processing images
 btn_images = tk.Button(app, text="Process Images", command=process_images, width=20)
 btn_images.pack(pady=10)
 
-
+# Label to display the results
 results_label = tk.Label(app, text="", justify="left", wraplength=500)
 results_label.pack(pady=10)
-
+# Label to display the QR code
 qr_label = tk.Label(app)
 qr_label.pack(pady=10)
 
 # Disable the "Save PDF" button initially
 btn_save_pdf = tk.Button(app, text="Print Receipt", command=save_pdf, width=20, state=tk.DISABLED)
 btn_save_pdf.pack(pady=10)
-
+# Button to show transactions
 btn_debug = tk.Button(app, text="Show Transactions", command=toggle_transaction_table, width=20)
 btn_debug.pack(pady=10)
 
@@ -145,5 +154,5 @@ transaction_table.column("Final Price", width=100)
 transaction_table.column("Total Price", width=100)
 transaction_table.column("Timestamp", width=200)
 
-
+# Run the Tkinter event loop
 app.mainloop()

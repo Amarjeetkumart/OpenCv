@@ -6,6 +6,7 @@ database = {
     "1234ABCD": {"name": "Product D", "price": 150.0, "discount": 5.0},
     "0123456745650": {"name": "Product E", "price": 1050.0, "discount": 50.0},
 }
-
+# function to get product info from database
 def get_product_info(barcode):
     return database.get(barcode)
+# return the list of transactions
