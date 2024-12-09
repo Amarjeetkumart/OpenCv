@@ -34,15 +34,15 @@ def generate_pdf_receipt(scanned_products, total_price, shop_name, shop_address)
     # Draw the scanned products in the table
     for product in scanned_products:
         c.drawString(50, y_position, product['name'])
-        c.drawString(300, y_position, f"₹{product['price']:.2f}")
+        c.drawString(300, y_position, f"$ {product['price']:.2f}")
         c.drawString(400, y_position, f"{product['discount']}%")
-        c.drawString(500, y_position, f"₹{product['final_price']:.2f}")
+        c.drawString(500, y_position, f"$ {product['final_price']:.2f}")
         y_position -= 20
 
 
     # Draw the total price at the bottom of the receipt
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, y_position, f"Total Price: ₹ {total_price:.2f}")
+    c.drawString(50, y_position, f"Total Price: $ {total_price:.2f}")
     c.save()
     return filename
 # Call the generate_pdf_receipt function with sample data

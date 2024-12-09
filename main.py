@@ -156,3 +156,4 @@ transaction_table.column("Timestamp", width=200)
 
 # Run the Tkinter event loop
 app.mainloop()
+# app.mainloop() is the main event loop that listens for events and updates the GUI accordingly. It runs until the window is closed or the application is terminated.
