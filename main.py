@@ -22,6 +22,8 @@ from tkinter import ttk
 # Initialize the database at the start of the application
 init_db()
 
+# live video processing
+from live_video_processing import start_live_video_processing, stop_live_video
 
 PDF_FILENAME = "./pdf/receipt.pdf"  
 # Name of the PDF file to be printed
@@ -120,29 +122,112 @@ app = tk.Tk()
 app.title("Barcode Scanner GUI")
 app.geometry("800x670")
 
+# # Buttons for processing video
+# btn_video = tk.Button(app, text="Process Video", command=process_video, width=20)
+# btn_video.pack(pady=10)
+# # Buttons for processing images
+# btn_images = tk.Button(app, text="Process Images", command=process_images, width=20)
+# btn_images.pack(pady=10)
+# # button for live video 
+# scanned_products = []
+# total_price = 0.0
+# btn_live_video = tk.Button(app, text="Start Live Video", command=lambda: start_live_video_processing(
+#     video_frame_label, results_label, qr_label, scanned_products, total_price), width=20)
+# btn_live_video.pack(pady=20)
+
+# # lable for video frame
+# video_frame_label = tk.Label(app)
+# video_frame_label.pack(pady=10)
+
+
+# # Label to display the results
+# results_label = tk.Label(app, text="", justify="left", wraplength=500)
+# results_label.pack(pady=10)
+# # Label to display the QR code
+# qr_label = tk.Label(app)
+# qr_label.pack(pady=10)
+
+# # Disable the "Save PDF" button initially
+# btn_save_pdf = tk.Button(app, text="Print Receipt", command=save_pdf, width=20, state=tk.DISABLED)
+# btn_save_pdf.pack(pady=10)
+# # Button to show transactions
+# btn_debug = tk.Button(app, text="Show Transactions", command=toggle_transaction_table, width=20)
+# btn_debug.pack(pady=10)
+
+# # Add a Table to Display Transactions
+# transaction_table = ttk.Treeview(app, columns=("ID", "Product Name", "Final Price", "Total Price", "Timestamp"), show="headings")
+# transaction_table.heading("ID", text="ID")
+# transaction_table.heading("Product Name", text="Product Name")
+# transaction_table.heading("Final Price", text="Final Price (₹)")
+# transaction_table.heading("Total Price", text="Total Price (₹)")
+# transaction_table.heading("Timestamp", text="Timestamp")
+# transaction_table.column("ID", width=50)
+# transaction_table.column("Product Name", width=200)
+# transaction_table.column("Final Price", width=100)
+# transaction_table.column("Total Price", width=100)
+# transaction_table.column("Timestamp", width=200)
+
+# # Run the Tkinter event loop
+# app.mainloop()
+# # app.mainloop() is the main event loop that listens for events and updates the GUI accordingly. It runs until the window is closed or the application is terminated.
+
+# Scrollable frame for results
+frame_canvas = tk.Frame(app)
+frame_canvas.pack(fill="both", expand=True)
+# Add a canvas to the frame
+canvas = tk.Canvas(frame_canvas)
+scrollbar = tk.Scrollbar(frame_canvas, orient="vertical", command=canvas.yview)
+scrollable_frame = tk.Frame(canvas)
+
+# Configure the canvas
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+)
+# Add the scrollable frame to the canvas
+canvas.create_window((400, 300), window=scrollable_frame, anchor="center")
+canvas.configure(yscrollcommand=scrollbar.set)
+# Pack the canvas and scrollbar
+canvas.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="y")
+
+# Add buttons for live video processing
+scanned_products = []
+total_price = 0.0
+btn_live_video = tk.Button(scrollable_frame, text="Start Live Video", command=lambda: start_live_video_processing(
+    video_frame_label, results_label, qr_label, scanned_products, total_price), width=20)
+btn_live_video.pack(pady=10)
+# Add a button to stop live video processing
+btn_stop_live_video = tk.Button(scrollable_frame, text="Stop Live Video", command=stop_live_video, width=20)
+btn_stop_live_video.pack(pady=10)
+
 # Buttons for processing video
-btn_video = tk.Button(app, text="Process Video", command=process_video, width=20)
+btn_video = tk.Button(scrollable_frame, text="Process Video", command=process_video, width=20)
 btn_video.pack(pady=10)
 # Buttons for processing images
-btn_images = tk.Button(app, text="Process Images", command=process_images, width=20)
+btn_images = tk.Button(scrollable_frame, text="Process Images", command=process_images, width=20)
 btn_images.pack(pady=10)
 
+# lable for video frame
+video_frame_label = tk.Label(scrollable_frame)
+video_frame_label.pack(pady=10)
+
 # Label to display the results
-results_label = tk.Label(app, text="", justify="left", wraplength=500)
+results_label = tk.Label(scrollable_frame, text="", justify="left", wraplength=500)
 results_label.pack(pady=10)
 # Label to display the QR code
-qr_label = tk.Label(app)
+qr_label = tk.Label(scrollable_frame)
 qr_label.pack(pady=10)
 
 # Disable the "Save PDF" button initially
-btn_save_pdf = tk.Button(app, text="Print Receipt", command=save_pdf, width=20, state=tk.DISABLED)
+btn_save_pdf = tk.Button(scrollable_frame, text="Print Receipt", command=save_pdf, width=20, state=tk.DISABLED)
 btn_save_pdf.pack(pady=10)
 # Button to show transactions
-btn_debug = tk.Button(app, text="Show Transactions", command=toggle_transaction_table, width=20)
+btn_debug = tk.Button(scrollable_frame, text="Show Transactions", command=toggle_transaction_table, width=20)
 btn_debug.pack(pady=10)
 
 # Add a Table to Display Transactions
-transaction_table = ttk.Treeview(app, columns=("ID", "Product Name", "Final Price", "Total Price", "Timestamp"), show="headings")
+transaction_table = ttk.Treeview(scrollable_frame, columns=("ID", "Product Name", "Final Price", "Total Price", "Timestamp"), show="headings")
 transaction_table.heading("ID", text="ID")
 transaction_table.heading("Product Name", text="Product Name")
 transaction_table.heading("Final Price", text="Final Price (₹)")
